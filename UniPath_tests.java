@@ -1,12 +1,12 @@
 import java.util.*;
 import java.io.*;
 
-class UniPath_tests {
+public class UniPath_tests {
 	static public void main(String[] args) {
 		UniPath.__prt_cnt = 200;
 	
 		test_parseUniPath();
-// 		test_uniPath();
+		test_uniPath();
 	}
 	
 	static public void test_parseUniPath() {
@@ -435,7 +435,109 @@ class UniPath_tests {
 // 		UniPath.debug_parse = true;
 		tree = UniPath.__parseUniPath(unipath.toCharArray(), null, null);
 // System.out.println(UniPath.call("toJson", tree));
-		assert equ(tree, ms(/*[{}]*/));
+		assert equ(tree, ms(/*[{
+  "name": "?start_data?", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {"0":"null"}, 
+  "unipath": ""
+},{
+  "name": "objs", 
+  "filter": [{
+      "left": null, 
+      "left_type": null, 
+      "op": null, 
+      "right": null, 
+      "right_type": null, 
+      "next": 1, 
+      "prev": null, 
+      "braket_level": 0
+    },{
+      "left": "@id", 
+      "left_type": "name", 
+      "op": "=", 
+      "right": "basket_order_id()", 
+      "right_type": "function", 
+      "next": null, 
+      "prev": null, 
+      "braket_level": 0
+    }], 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/objs[@id=basket_order_id()]"
+},{
+  "name": "order_items", 
+  "filter": [{
+      "left": null, 
+      "left_type": null,
+      "op": null, 
+      "right": null, 
+      "right_type": null, 
+      "next": 1, 
+      "prev": null, 
+      "braket_level": 0
+    },{
+      "left": "rel_val", 
+      "left_type": "name", 
+      "op": "=", 
+      "right": "1", 
+      "right_type": "number", 
+      "next": null, 
+      "prev": null, 
+      "braket_level": 0
+    }], 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/objs[@id=basket_order_id()]\/order_items[rel_val=1]"
+},{
+  "name": "asObj()", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/objs[@id=basket_order_id()]\/order_items[rel_val=1]\/asObj()"
+},{
+  "name": "item_link", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/objs[@id=basket_order_id()]\/order_items[rel_val=1]\/asObj()\/item_link"
+},{
+  "name": "asPage()", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/objs[@id=basket_order_id()]\/order_items[rel_val=1]\/asObj()\/item_link\/asPage()"
+},{
+  "name": "asObj()", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/objs[@id=basket_order_id()]\/order_items[rel_val=1]\/asObj()\/item_link\/asPage()\/asObj()"
+},{
+  "name": ".", 
+  "filter": [{
+      "left": null, 
+      "left_type": null, 
+      "op": null, 
+      "right": null, 
+      "right_type": null, 
+      "next": 1, 
+      "prev": null, 
+      "braket_level": 0
+    },{
+      "left": "@data_type", 
+      "left_type": "name", 
+      "op": "=", 
+      "right": "optioned",
+      "right_type": "string", 
+      "next": null, 
+      "prev": null, 
+      "braket_level": 0
+    }], 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/objs[@id=basket_order_id()]\/order_items[rel_val=1]\/asObj()\/item_link\/asPage()\/asObj()\/.[@data_type='optioned']"
+}]*/));
 		
 		unipath = "/objs[@name = 'Сочи, Чебрикова 7, кв. 32' and @owner_id = current_user_id()]/@id";
 		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", unipath);
@@ -1032,43 +1134,921 @@ class UniPath_tests {
 // 		UniPath.debug_parse = true;
 		tree = UniPath.__parseUniPath(unipath.toCharArray(), null, null);
 // System.out.println(UniPath.call("toJson", tree));
-		assert equ(tree, ms(/*[{}]*/));
+		assert equ(tree, ms(/*[{
+  "name": "?start_data?", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {"0":"null"}, 
+  "unipath": ""
+},{
+  "name": "cache(file:\/\/.\/newbilding.json\/contents)", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/cache(file:\/\/.\/newbilding.json\/contents)"
+},{
+  "name": "ifEmpty(db1\/alias('default_Orchard_Framework_ContentItemRecord','cont')[ContentType_id=11]\/cahe(file:\/\/.\/newbilding.json))", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/cache(file:\/\/.\/newbilding.json\/contents)\/ifEmpty(db1\/alias('default_Orchard_Framework_ContentItemRecord','cont')[ContentType_id=11]\/cahe(file:\/\/.\/newbilding.json))"
+},{
+  "name": "0", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/cache(file:\/\/.\/newbilding.json\/contents)\/ifEmpty(db1\/alias('default_Orchard_Framework_ContentItemRecord','cont')[ContentType_id=11]\/cahe(file:\/\/.\/newbilding.json))\/0"
+}]*/));
 		
-		unipath = "/db1/table1[id=1]/columns(chunked(table1.Data, 10000, 3000), alias('table1.Id', 'id1'), 'table1.ContentType_id, REPLACE(''abcd)asd'', '')'', ''('')')/asSQLQuery()";
+// 		unipath = "/db1/table1[id=1]/columns(chunked(table1.Data, 10000, 3000), alias('table1.Id', 'id1'), 'table1.ContentType_id, REPLACE(''abcd)asd'', '')'', ''('')')/asSQLQuery()";
 		
 		unipath = "/row_data/newbarea/add(', ')/add(row_data/newbadress/regexp_replace('^[0-9]+\\.',''))/remove_end(', ')/remove_start(', ')/ifEmpty('&mdash;')";
+		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", unipath);
+// 		UniPath.debug_parse = true;
+		tree = UniPath.__parseUniPath(unipath.toCharArray(), null, null);
+// System.out.println(UniPath.call("toJson", tree));
+		assert equ(tree, ms(/*[{
+  "name": "?start_data?", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {"0":"null"}, 
+  "unipath": ""
+},{
+  "name": "row_data", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/row_data"
+},{
+  "name": "newbarea", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/row_data\/newbarea"
+},{
+  "name": "add(', ')", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/row_data\/newbarea\/add(', ')"
+},{
+  "name": "add(row_data\/newbadress\/regexp_replace('^[0-9]+\\.',''))", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/row_data\/newbarea\/add(', ')\/add(row_data\/newbadress\/regexp_replace('^[0-9]+\\.',''))"
+},{
+  "name": "remove_end(', ')", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/row_data\/newbarea\/add(', ')\/add(row_data\/newbadress\/regexp_replace('^[0-9]+\\.',''))\/remove_end(', ')"
+},{
+  "name": "remove_start(', ')", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/row_data\/newbarea\/add(', ')\/add(row_data\/newbadress\/regexp_replace('^[0-9]+\\.',''))\/remove_end(', ')\/remove_start(', ')"
+},{
+  "name": "ifEmpty('&mdash;')", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/row_data\/newbarea\/add(', ')\/add(row_data\/newbadress\/regexp_replace('^[0-9]+\\.',''))\/remove_end(', ')\/remove_start(', ')\/ifEmpty('&mdash;')"
+}]*/));
 		
 		unipath = "$_POST/site_map/Недвижимость/premium";
+		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", unipath);
+// 		UniPath.debug_parse = true;
+		tree = UniPath.__parseUniPath(unipath.toCharArray(), null, null);
+// System.out.println(UniPath.call("toJson", tree));
+		assert equ(tree, ms(/*[{
+  "name": "?start_data?", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {"0":"null"}, 
+  "unipath": ""
+},{
+  "name": "$_POST", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "$_POST"
+},{
+  "name": "site_map", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "$_POST\/site_map"
+},{
+  "name": "Недвижимость", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "$_POST\/site_map\/Недвижимость"
+},{
+  "name": "premium", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "$_POST\/site_map\/Недвижимость\/premium"
+}]*/));
 		
 		unipath = "db1/users[u_login = /_POST/login and u_password_hash = /_POST/password]/0";
+		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", unipath);
+// 		UniPath.debug_parse = true;
+		tree = UniPath.__parseUniPath(unipath.toCharArray(), null, null);
+// System.out.println(UniPath.call("toJson", tree));
+		assert equ(tree, ms(/*[{
+  "name": "?start_data?", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {"0":"null"}, 
+  "unipath": ""
+},{
+  "name": "db1", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "db1"
+},{
+  "name": "users", 
+  "filter": [{
+      "left": null, 
+      "left_type": null, 
+      "op": null, 
+      "right": null, 
+      "right_type": null, 
+      "next": 1, 
+      "prev": null, 
+      "braket_level": 0
+    },{
+      "left": "u_login", 
+      "left_type": "name", 
+      "op": "=", 
+      "right": "\/_POST\/login", 
+      "right_type": "unipath", 
+      "next": 3, 
+      "prev": null, 
+      "braket_level": 0
+    },{
+      "left": 1, 
+      "left_type": "expr", 
+      "op": "and", 
+      "right": 3, 
+      "right_type": "expr", 
+      "next": null, 
+      "prev": null, 
+      "braket_level": 0
+    },{
+      "left": "u_password_hash", 
+      "left_type": "name", 
+      "op": "=", 
+      "right": "\/_POST\/password", 
+      "right_type": "unipath", 
+      "next": 2, 
+      "prev": null, 
+      "braket_level": 0
+    }],
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "db1\/users[u_login = \/_POST\/login and u_password_hash = \/_POST\/password]"
+},{
+  "name": "0", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "db1\/users[u_login = \/_POST\/login and u_password_hash = \/_POST\/password]\/0"
+}]*/));
 		
 		unipath = "db1/orders[u_id = /_SESSION/user/u_id and ord_deleted = 0]";
+		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", unipath);
+// 		UniPath.debug_parse = true;
+		tree = UniPath.__parseUniPath(unipath.toCharArray(), null, null);
+// System.out.println(UniPath.call("toJson", tree));
+		assert equ(tree, ms(/*[{
+  "name": "?start_data?", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {"0":"null"}, 
+  "unipath": ""
+},{
+  "name": "db1", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "db1"
+},{
+  "name": "orders", 
+  "filter": [{
+      "left": null, 
+      "left_type": null, 
+      "op": null, 
+      "right": null, 
+      "right_type": null, 
+      "next": 1, 
+      "prev": null, 
+      "braket_level": 0
+    },{
+      "left": "u_id", 
+      "left_type": "name", 
+      "op": "=", 
+      "right": "\/_SESSION\/user\/u_id", 
+      "right_type": "unipath", 
+      "next": 3, 
+      "prev": null, 
+      "braket_level": 0
+    },{
+      "left": 1, 
+      "left_type": "expr", 
+      "op": "and", 
+      "right": 3, 
+      "right_type": "expr", 
+      "next": null, 
+      "prev": null, 
+      "braket_level": 0
+    },{
+      "left": "ord_deleted", 
+      "left_type": "name", 
+      "op": "=", 
+      "right": "0", 
+      "right_type": "number", 
+      "next": 2, 
+      "prev": null, 
+      "braket_level": 0
+    }], 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "db1\/orders[u_id = \/_SESSION\/user\/u_id and ord_deleted = 0]"
+}]*/));
 		
 		unipath = "/db1/table1[id = -123]";
+		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", unipath);
+// 		UniPath.debug_parse = true;
+		tree = UniPath.__parseUniPath(unipath.toCharArray(), null, null);
+// System.out.println(UniPath.call("toJson", tree));
+		assert equ(tree, ms(/*[{
+  "name": "?start_data?", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {"0":"null"}, 
+  "unipath": ""
+},{
+  "name": "db1", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/db1"
+},{
+  "name": "table1", 
+  "filter": [{
+      "left": null, 
+      "left_type": null, 
+      "op": null, 
+      "right": null, 
+      "right_type": null, 
+      "next": 1, 
+      "prev": null, 
+      "braket_level": 0
+    },{
+      "left": "id", 
+      "left_type": "name", 
+      "op": "=", 
+      "right": "-123", 
+      "right_type": "number", 
+      "next": null, 
+      "prev": null, 
+      "braket_level": 0
+    }], 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/db1\/table1[id = -123]"
+}]*/));
 		
 		unipath = "/db1/table1[]";
+		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", unipath);
+// 		UniPath.debug_parse = true;
+		tree = UniPath.__parseUniPath(unipath.toCharArray(), null, null);
+// System.out.println(UniPath.call("toJson", tree));
+		assert equ(tree, ms(/*[{
+  "name": "?start_data?", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {"0":"null"}, 
+  "unipath": ""
+},{
+  "name": "db1", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/db1"
+},{
+  "name": "table1", 
+  "filter": [{
+      "left": null, 
+      "left_type": null, 
+      "op": null, 
+      "right": null, 
+      "right_type": null, 
+      "next": null, 
+      "prev": null, 
+      "braket_level": 0
+    }], 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/db1\/table1[]"
+}]*/));
 		
 		unipath = "/db1/table1[1]";
+		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", unipath);
+// 		UniPath.debug_parse = true;
+		tree = UniPath.__parseUniPath(unipath.toCharArray(), null, null);
+// System.out.println(UniPath.call("toJson", tree));
+		assert equ(tree, ms(/*[{
+  "name": "?start_data?", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {"0":"null"}, 
+  "unipath": ""
+},{
+  "name": "db1", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/db1"
+},{
+  "name": "table1", 
+  "filter": [{
+      "left": null, 
+      "left_type": null, 
+      "op": null, 
+      "right": null, 
+      "right_type": null, 
+      "next": 1, 
+      "prev": null, 
+      "braket_level": 0
+    },{
+      "left": "1", 
+      "left_type": "number", 
+      "op": null, 
+      "right": null, 
+      "right_type": null, 
+      "next": null, 
+      "prev": null, 
+      "braket_level": 0
+    }], 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/db1\/table1[1]"
+}]*/));
 		
 		unipath = "/.[1=1 and (DataXML/zemucharea = 'Лазаревский' or DataXML/zemucharea = 'Хостинский') and DataXML/priceuch <= 0]";
+		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", unipath);
+// 		UniPath.debug_parse = true;
+		tree = UniPath.__parseUniPath(unipath.toCharArray(), null, null);
+// System.out.println(UniPath.call("toJson", tree));
+		assert equ(tree, ms(/*[{
+  "name": "?start_data?", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {"0":"null"}, 
+  "unipath": ""
+},{
+  "name": ".", 
+  "filter": [{
+      "left": null, 
+      "left_type": null, 
+      "op": null, 
+      "right": null, 
+      "right_type": null, 
+      "next": 1, 
+      "prev": null, 
+      "braket_level": 0
+    },{
+      "left": "1", 
+      "left_type": "number", 
+      "op": "=", 
+      "right": "1", 
+      "right_type": "number", 
+      "next": 3, 
+      "prev": null, 
+      "braket_level": 0
+    },{
+      "left": 1, 
+      "left_type": "expr", 
+      "op": "and", 
+      "right": 4, 
+      "right_type": "expr", 
+      "next": 7, 
+      "prev": null, 
+      "braket_level": 0
+    },{
+      "left": "DataXML\/zemucharea", 
+      "left_type": "unipath", 
+      "op": "=", 
+      "right": "Лазаревский", 
+      "right_type": "string", 
+      "next": 5, 
+      "prev": null, 
+      "braket_level": 1
+    },{
+      "left": 3, 
+      "left_type": "expr", 
+      "op": "or", 
+      "right": 5, 
+      "right_type": "expr", 
+      "next": 2, 
+      "prev": null, 
+      "braket_level": 1
+    },{
+      "left": "DataXML\/zemucharea", 
+      "left_type": "unipath", 
+      "op": "=", 
+      "right": "Хостинский", 
+      "right_type": "string", 
+      "next": 4, 
+      "prev": null, 
+      "braket_level": 1
+    },{
+      "left": 2, 
+      "left_type": "expr", 
+      "op": "and", 
+      "right": 7, 
+      "right_type": "expr", 
+      "next": null, 
+      "prev": null, 
+      "braket_level": 0
+    },{
+      "left": "DataXML\/priceuch", 
+      "left_type": "unipath", 
+      "op": "<=", 
+      "right": "0", 
+      "right_type": "number", 
+      "next": 6, 
+      "prev": null, 
+      "braket_level": 0
+    }], 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/.[1=1 and (DataXML\/zemucharea = 'Лазаревский' or DataXML\/zemucharea = 'Хостинский') and DataXML\/priceuch <= 0]"
+}]*/));
 		
 		unipath = "/.[DataXML/ulstreet='Депутатская','Учительская', \"Лермонтова\", `Пирогова`, 'Грибоедова', 'Дмитриевой', 'Комсомольская', 'Лысая']";
+		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", unipath);
+// 		UniPath.debug_parse = true;
+		tree = UniPath.__parseUniPath(unipath.toCharArray(), null, null);
+// System.out.println(UniPath.call("toJson", tree));
+		assert equ(tree, ms(/*[{
+  "name": "?start_data?", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {"0":"null"}, 
+  "unipath": ""
+},{
+  "name": ".", 
+  "filter": [{
+      "left": null, 
+      "left_type": null, 
+      "op": null, 
+      "right": null, 
+      "right_type": null, 
+      "next": 1, 
+      "prev": null, 
+      "braket_level": 0
+    },{
+      "left": "DataXML\/ulstreet", 
+      "left_type": "unipath", 
+      "op": "=", 
+      "right": ["Депутатская","Учительская","Лермонтова","Пирогова","Грибоедова","Дмитриевой","Комсомольская","Лысая"], 
+      "right_type": "list-of-string", 
+      "next": null, 
+      "prev": null, 
+      "braket_level": 0
+    }], 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/.[DataXML\/ulstreet='Депутатская','Учительская', \"Лермонтова\", `Пирогова`, 'Грибоедова', 'Дмитриевой', 'Комсомольская', 'Лысая']"
+}]*/));
 		
 		unipath = "_SERVER/DOCUMENT_ROOT/asDirectory()/objs/10597/Pictures/'фото 2-1.JPG'";
+		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", unipath);
+// 		UniPath.debug_parse = true;
+		tree = UniPath.__parseUniPath(unipath.toCharArray(), null, null);
+// System.out.println(UniPath.call("toJson", tree));
+		assert equ(tree, ms(/*[{
+  "name": "?start_data?", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {"0":"null"}, 
+  "unipath": ""
+},{
+  "name": "_SERVER", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER"
+},{
+  "name": "DOCUMENT_ROOT", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT"
+},{
+  "name": "asDirectory()", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()"
+},{
+  "name": "objs", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs"
+},{
+  "name": "10597", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs\/10597"
+},{
+  "name": "Pictures", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs\/10597\/Pictures"
+},{
+  "name": "фото 2-1.JPG", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs\/10597\/Pictures\/'фото 2-1.JPG'"
+}]*/));
 		
 		unipath = "_SERVER/DOCUMENT_ROOT/asDirectory()/objs/8506/Pictures/`image (3)-7.jpg`/asImageFile()";
+		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", unipath);
+// 		UniPath.debug_parse = true;
+		tree = UniPath.__parseUniPath(unipath.toCharArray(), null, null);
+// System.out.println(UniPath.call("toJson", tree));
+		assert equ(tree, ms(/*[{
+  "name": "?start_data?", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {"0":"null"}, 
+  "unipath": ""
+},{
+  "name": "_SERVER", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER"
+},{
+  "name": "DOCUMENT_ROOT", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT"
+},{
+  "name": "asDirectory()", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()"
+},{
+  "name": "objs", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs"
+},{
+  "name": "8506", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs\/8506"
+},{
+  "name": "Pictures", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs\/8506\/Pictures"
+},{
+  "name": "image (3)-7.jpg", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs\/8506\/Pictures\/`image (3)-7.jpg`"
+},{
+  "name": "asImageFile()", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs\/8506\/Pictures\/`image (3)-7.jpg`\/asImageFile()"
+}]*/));
 		
 		unipath = "/_POST/empty_value/ifEmpty('<span class=\"obj-nophoto\">Нет фото</span>')";
+		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", unipath);
+// 		UniPath.debug_parse = true;
+		tree = UniPath.__parseUniPath(unipath.toCharArray(), null, null);
+// System.out.println(UniPath.call("toJson", tree));
+		assert equ(tree, ms(/*[{
+  "name": "?start_data?", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {"0":"null"}, 
+  "unipath": ""
+},{
+  "name": "_POST", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/_POST"
+},{
+  "name": "empty_value", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/_POST\/empty_value"
+},{
+  "name": "ifEmpty('<span class=\"obj-nophoto\">Нет фото<\/span>')", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/_POST\/empty_value\/ifEmpty('<span class=\"obj-nophoto\">Нет фото<\/span>')"
+}]*/));
 		
 		unipath = "/row/prd_data_json_encoded/asJSON()/.[./key()/preg_match('image[0-9]$')]";
+		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", unipath);
+// 		UniPath.debug_parse = true;
+		tree = UniPath.__parseUniPath(unipath.toCharArray(), null, null);
+// System.out.println(UniPath.call("toJson", tree));
+		assert equ(tree, ms(/*[{
+  "name": "?start_data?", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {"0":"null"}, 
+  "unipath": ""
+},{
+  "name": "row", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/row"
+},{
+  "name": "prd_data_json_encoded", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/row\/prd_data_json_encoded"
+},{
+  "name": "asJSON()", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/row\/prd_data_json_encoded\/asJSON()"
+},{
+  "name": ".", 
+  "filter": [{
+      "left": null, 
+      "left_type": null, 
+      "op": null, 
+      "right": null, 
+      "right_type": null, 
+      "next": 1, 
+      "prev": null, 
+      "braket_level": 0
+    },{
+      "left": ".\/key()\/preg_match('image[0-9]$')", 
+      "left_type": "unipath", 
+      "op": null, 
+      "right": null, 
+      "right_type": null, 
+      "next": null, 
+      "prev": null, 
+      "braket_level": 0
+    }], 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "\/row\/prd_data_json_encoded\/asJSON()\/.[.\/key()\/preg_match('image[0-9]$')]"
+}]*/));
 		
 		try {
 		unipath = "_SERVER/DOCUMENT_ROOT/asDirectory()/objs/123/Pictures/"+new String("123лаущыцлвв-1.jpg".getBytes("UTF-8"), "windows-1251")+"/asImageFile()/resize(`100`, `100`, `inbox`)/saveAs(`/tmp/"+new String("123лаущыцлвв-1.jpg".getBytes("UTF-8"), "windows-1251")+"`)";
-		} catch(UnsupportedEncodingException ex) { /* skip */ }
+		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", unipath);
+// 		UniPath.debug_parse = true;
+		tree = UniPath.__parseUniPath(unipath.toCharArray(), null, null);
+// System.out.println(UniPath.call("toJson", tree));
+		assert equ(tree, ms(/*[{
+  "name": "?start_data?", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {"0":"null"}, 
+  "unipath": ""
+},{
+  "name": "_SERVER", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER"
+},{
+  "name": "DOCUMENT_ROOT", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT"
+},{
+  "name": "asDirectory()", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()"
+},{
+  "name": "objs", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs"
+},{
+  "name": "123", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs\/123"
+},{
+  "name": "Pictures", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs\/123\/Pictures"
+},{
+  "name": "123Р»Р°СѓС\u2030С\u2039С\u2020Р»РІРІ-1.jpg", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs\/123\/Pictures\/123Р»Р°СѓС\u2030С\u2039С\u2020Р»РІРІ-1.jpg"
+},{
+  "name": "asImageFile()", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs\/123\/Pictures\/123Р»Р°СѓС\u2030С\u2039С\u2020Р»РІРІ-1.jpg\/asImageFile()"
+},{
+  "name": "resize(`100`, `100`, `inbox`)", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs\/123\/Pictures\/123Р»Р°СѓС\u2030С\u2039С\u2020Р»РІРІ-1.jpg\/asImageFile()\/resize(`100`, `100`, `inbox`)"
+},{
+  "name": "saveAs(`\/tmp\/123Р»Р°СѓС\u2030С\u2039С\u2020Р»РІРІ-1.jpg`)", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs\/123\/Pictures\/123Р»Р°СѓС\u2030С\u2039С\u2020Р»РІРІ-1.jpg\/asImageFile()\/resize(`100`, `100`, `inbox`)\/saveAs(`\/tmp\/123Р»Р°СѓС\u2030С\u2039С\u2020Р»РІРІ-1.jpg`)"
+}]*/));
+		} 
+		catch(UnsupportedEncodingException ex) { /* skip */ }
 		
-		unipath = "file://./unipath_test.txt";
 		
-		unipath = "_SERVER/DOCUMENT_ROOT/asDirectory()/objs/123/Pictures/'"+"2,_3,_4этаж[1]-1.JPG"+"'/asImageFile()/resize(`100`, `100`, `fill`)/crop(`100`, `100`)/saveAs(`/tmp/"+"2,_3,_4этаж[1]-1.JPG"+"`)";
+		unipath = "file://./unipath_test.txt#/contents()";
+		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", unipath);
+// 		UniPath.debug_parse = true;
+		tree = UniPath.__parseUniPath(unipath.toCharArray(), null, null);
+// System.out.println(UniPath.call("toJson", tree));
+		assert equ(tree, ms(/*[{
+  "name": "?start_data?", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {"0":"null"}, 
+  "unipath": ""
+},{
+  "name": "url(```````file:\/\/.\/unipath_test.txt```````)", 
+  "filter": null, 
+  "data": null, 
+  "metadata": null, 
+  "unipath": "file:\/\/.\/unipath_test.txt#\/"
+},{
+  "name": "contents()", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "file:\/\/.\/unipath_test.txt#\/contents()"
+}]*/));
+		
+		unipath = "_SERVER/DOCUMENT_ROOT/asDirectory()/objs/123/Pictures/'2,_3,_4этаж[1]-1.JPG'/asImageFile()/resize(`100`, `100`, `fill`)/crop(`100`, `100`)/saveAs(`/tmp/2,_3,_4этаж[1]-1.JPG`)";
+		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", unipath);
+// 		UniPath.debug_parse = true;
+		tree = UniPath.__parseUniPath(unipath.toCharArray(), null, null);
+// System.out.println(UniPath.call("toJson", tree));
+		assert equ(tree, ms(/*[{
+  "name": "?start_data?", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {"0":"null"}, 
+  "unipath": ""
+},{
+  "name": "_SERVER", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER"
+},{
+  "name": "DOCUMENT_ROOT", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT"
+},{
+  "name": "asDirectory()", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()"
+},{
+  "name": "objs", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs"
+},{
+  "name": "123", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs\/123"
+},{
+  "name": "Pictures", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs\/123\/Pictures"
+},{
+  "name": "2,_3,_4этаж[1]-1.JPG", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs\/123\/Pictures\/'2,_3,_4этаж[1]-1.JPG'"
+},{
+  "name": "asImageFile()", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs\/123\/Pictures\/'2,_3,_4этаж[1]-1.JPG'\/asImageFile()"
+},{
+  "name": "resize(`100`, `100`, `fill`)", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs\/123\/Pictures\/'2,_3,_4этаж[1]-1.JPG'\/asImageFile()\/resize(`100`, `100`, `fill`)"
+},{
+  "name": "crop(`100`, `100`)", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs\/123\/Pictures\/'2,_3,_4этаж[1]-1.JPG'\/asImageFile()\/resize(`100`, `100`, `fill`)\/crop(`100`, `100`)"
+},{
+  "name": "saveAs(`\/tmp\/2,_3,_4этаж[1]-1.JPG`)", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "_SERVER\/DOCUMENT_ROOT\/asDirectory()\/objs\/123\/Pictures\/'2,_3,_4этаж[1]-1.JPG'\/asImageFile()\/resize(`100`, `100`, `fill`)\/crop(`100`, `100`)\/saveAs(`\/tmp\/2,_3,_4этаж[1]-1.JPG`)"
+}]*/));
+		
+		unipath = "[sprintf1(`%s %s`, name, last_name) = `Тест Тестович`]";
+		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", unipath);
+// 		UniPath.debug_parse = true;
+		tree = UniPath.__parseUniPath(unipath.toCharArray(), null, null);
+// System.out.println(UniPath.call("toJson", tree));
+		assert equ(tree, ms(/*[{
+  "name": "?start_data?", 
+  "filter": null, 
+  "data": null, 
+  "metadata": {"0":"null"}, 
+  "unipath": ""
+},{
+  "name": null, 
+  "filter": [{
+      "left": null, 
+      "left_type": null, 
+      "op": null, 
+      "right": null, 
+      "right_type": null, 
+      "next": 1, 
+      "prev": null, 
+      "braket_level": 0
+    },{
+      "left": "sprintf1(`%s %s`, name, last_name)", 
+      "left_type": "function", 
+      "op": "=", 
+      "right": "Тест Тестович", 
+      "right_type": "string", 
+      "next": null, 
+      "prev": null, 
+      "braket_level": 0
+    }], 
+  "data": null, 
+  "metadata": {}, 
+  "unipath": "[sprintf1(`%s %s`, name, last_name) = `Тест Тестович`]"
+}]*/));
 		
 		/*************** __parseFuncArgs ************** */
 		
@@ -1218,25 +2198,76 @@ class UniPath_tests {
 // System.out.println(UniPath.call("toJson", args));
 		assert equ(args, ms(/*{"cat_code1c":".\/`Родитель--Код`","prd_url":"array(Description\/toURLTranslit(),`_`,Code)\/join()","prd_code1c":"Code","prd_stock6":".\/'ОстаткиНаСкладе--Москва'\/normalize_float()","prd_deleted":"DeletionMark\/replace_string(`ложь`=0,`истина`=1)\/php_intval()","prd_stock1":".\/'ОстаткиНаСкладе--Сочи'\/normalize_float()","prd_stock2":".\/'ВыгружатьНаСайт'\/normalize_float()","prd_stock3":".\/'ОстаткиНаСкладе--Краснодар'\/normalize_float()","prd_stock4":".\/'ОстаткиНаСкладе--Ростов-на-Дону'\/normalize_float()","prd_price2":".\/'Цены--ИнтернетЦена'\/normalize_float()","prd_articul":".\/`Артикул`","prd_price3":".\/'Цены--Закупочный'\/normalize_float()","prd_name":"Description","cat_id":"\/db_cats\/.[cat_code1c=\/row\/`Родитель--Код`]\/first()","parent_code1c":".\/`Родитель--Код`","prd_price6":".\/'Цены--Оптовая'\/normalize_float()","prd_data":"array(\n\t\t\t`prd_short_description`=.\/`КраткоеОписание`,\n\t\t\t`prd_specifications_raw`=.\/`ДополнительноеОписаниеНоменклатуры`\n\t\t\t)"}*/));
 		assert equ(args_types, ms(/*{"cat_code1c":"unipath","prd_url":"unipath","prd_code1c":"unipath","prd_stock6":"unipath","prd_deleted":"unipath","prd_stock1":"unipath","prd_stock2":"unipath","prd_stock3":"unipath","prd_stock4":"unipath","prd_price2":"unipath","prd_articul":"unipath","prd_price3":"unipath","prd_name":"unipath","cat_id":"unipath","parent_code1c":"unipath","prd_price6":"unipath","prd_data":"unipath"}*/));
+		
+		func_string = "like(Data, test1=N'%abc%', N'%abc%')";
+		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", func_string); args.clear(); args_types.clear();
+// 		UniPath.debug_parse = true;
+		func_name = UniPath.__parseFuncArgs(func_string.toCharArray(), args, args_types);
+		assert func_name.equals("like") : func_name;
+// System.out.println(UniPath.call("toJson", args));
+		assert equ(args, ms(/*{"test1":"%abc%","0":"Data","1":"%abc%"}*/));
+		assert equ(args_types, ms(/*{"test1":"string-with-N","0":"unipath","1":"string-with-N"}*/));
+		
+		func_string = "if([sprintf1(`%s %s`, name, last_name) = `Тест Тестович`], ' selected=\"selected\"', '')";
+		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", func_string); args.clear(); args_types.clear();
+// 		UniPath.debug_parse = true;
+		func_name = UniPath.__parseFuncArgs(func_string.toCharArray(), args, args_types);
+		assert func_name.equals("if") : func_name;
+// System.out.println(UniPath.call("toJson", args));
+		assert equ(args, ms(/*{"0":"[sprintf1(`%s%s`,name,last_name)=`ТестТестович`]","1":"selected=\"selected\"","2":""}*/));
+		assert equ(args_types, ms(/*{"0":"unipath","1":"string","2":"string"}*/));
+		
+		func_string = "format('<h1>%s</h1><pre>%s</pre>%d',.,*,/0)";
+		System.out.format("%n\033[1m~~~~ %s ~~~~\033[0m%n", func_string); args.clear(); args_types.clear();
+// 		UniPath.debug_parse = true;
+		func_name = UniPath.__parseFuncArgs(func_string.toCharArray(), args, args_types);
+		assert func_name.equals("format") : func_name;
+// System.out.println(UniPath.call("toJson", args));
+		assert equ(args, ms(/*{"0":"<h1>%s<\/h1><pre>%s<\/pre>%d","1":".","2":"*","3":"\/0"}*/));
+		assert equ(args_types, ms(/*{"0":"string","1":"unipath","2":"unipath","3":"unipath"}*/));
+		
 	}
 	
 	static public void test_uniPath() {
 		UniPath uni;
 		Object obj;
 		String unipath;
+		
+		unipath = "/java.util.HashMap/new()";
+		System.out.format("%n\033[1m~~~ %s ~~~\033[0m%n", unipath);
+// 		UniPath.debug = true;
+		obj = new UniPath(unipath).get();
+// System.out.println(UniPath.call("toJson", obj));
+		assert obj instanceof HashMap;
+		
+		unipath = "/String/new()";
+		System.out.format("%n\033[1m~~~ %s ~~~\033[0m%n", unipath);
+// 		UniPath.debug = true;
+		obj = new UniPath(unipath).get();
+// System.out.println(UniPath.call("toJson", obj));
+		assert obj instanceof String;
+		
+		unipath = "/String/format('# %s #',.)";
+		System.out.format("%n\033[1m~~~ %s ~~~\033[0m%n", unipath);
+// 		UniPath.debug = true;
+		obj = new UniPath(unipath).get();
+// System.out.println(UniPath.call("toJson", obj));
+		assert obj instanceof String : obj;
+		assert obj.equals("# class java.lang.String #") : obj;
+		
+		unipath = "/java.util.HashMap/new()/put(1, '123')";
+		System.out.format("%n\033[1m~~~ %s ~~~\033[0m%n", unipath);
 		UniPath.debug = true;
+		obj = new UniPath(unipath).get();
+// System.out.println(UniPath.call("toJson", obj));
+		assert obj instanceof HashMap;
+		assert ((HashMap) obj).get(1) instanceof String : ((HashMap) obj).get(1);
 		
 		unipath = "fs()";
-		System.out.format("%n\033[1m~~~ %s ~~~\033[1m%n", unipath);
+		System.out.format("%n\033[1m~~~ %s ~~~\033[0m%n", unipath);
 		obj = new UniPath(unipath).get();
-System.out.println(UniPath.call("toJson", obj));
-		assert obj instanceof HashMap;
-		
-		unipath = "/java.util.HashMap/new()/class";
-		System.out.format("%n\033[1m~~~ %s ~~~\033[1m%n", unipath);
-		obj = new UniPath(unipath).get();
-System.out.println(UniPath.call("toJson", obj));
-		assert obj instanceof HashMap;
+// System.out.println(UniPath.call("toJson", obj));
+		assert obj instanceof String && obj.equals("file://");
 	}
 	
 	static public void test_extensions() {

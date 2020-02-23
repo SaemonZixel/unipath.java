@@ -36,15 +36,20 @@ class UniPath {
 	static public Boolean debug_parse = false;
 	static public Boolean debug = false;
 	
+	static public Integer __steps_limit = 100; // лимит на количество шагов в unipath-строке
 	static public Integer __prt_cnt = 100000; // лимит интераций циклов, защитный счётчик от бесконечного зацикливания
-	static public Integer __optimize = 1; // 0 - off; 1 - optimeze: /abc, ./abc, ./`abc`, .
+	static public Integer __optimize = 1; // 0 - off; 1 - optimize: /abc, ./abc, ./`abc`, .
 	static public Object __benchmark; // для статистики скорости обработки unipath запросов
 
+	// дефолтное хранилище для функции cache()
+	static public HashMap<String, Object> cache_storage = new HashMap<String, Object>();
+	static public HashMap<String, HashMap<String, Object>> cache_storage_metadata = new HashMap<String, HashMap<String, Object>>();
+	
 	// дополнительные функции
 	static public HashMap<String, Object> __extensions = new HashMap<String, Object>();
 	static {
 		__extensions.put("toJson", UniPath.class);
-// 		__extensions.put("fs", UniPath.class);
+		__extensions.put("fs", UniPath.class);
 	}
 	
 	public ArrayList<Node> tree; // текущее разобранное дерево unipath_query
@@ -149,13 +154,25 @@ class UniPath {
 		tree = __parseUniPath(unipath_query.toCharArray(), null, null);
 		__evalUniPath(tree);
 	}
+	
+	public UniPath(String unipath_query, Object start_data, HashMap<String, Object> start_data_metadata) {
+		tree = __parseUniPath(unipath_query.toCharArray(), start_data, start_data_metadata);
+		__evalUniPath(tree);
+	}
 
-	public UniPath(String unipath_query, Object arg1) {
+	/* public UniPath(String unipath_query, Object arg1) {
 		tree = __parseUniPath(unipath_query.toCharArray(), new Object[]{ arg1 }, null);
 		__evalUniPath(tree);
+	} */
+	
+	static public Object eval(String unipath_query) {
+		ArrayList<Node> tree = UniPath.__parseUniPath(unipath_query.toCharArray(), null, null);
+		UniPath.__evalUniPath(tree);
+		return tree.get(tree.size()-1).data;
 	}
 	
 	public Object get() {
+		if(UniPath.debug) System.out.format("*** RETURN ***%n%s%n**************%n", tree.get(tree.size()-1).data);
 		return tree.get(tree.size()-1).data;
 	}
 	
@@ -169,13 +186,13 @@ class UniPath {
 		return tree.get(tree.size()-1).data;
 	}
 	
-// 	public Object get(String unipath_query, Object arg1) {
+// 	public Object get(String unipath_query, Object args...) {
 // 		tree = __parseUniPath(unipath_query.toCharArray(), new Object[]{ arg1 }, null);
 // 		__evalUniPath(tree);
 // 		return tree.get(tree.size()-1).data;
 // 	}
 	
-	public Boolean set(String unipath_query, Object set_value) {
+	public Boolean put(Object set_value, String unipath_query/*, Object args...*/) {
 		return false;
 	}
 	
@@ -205,10 +222,11 @@ class UniPath {
 	}
 	
 	// главная функция (сердце UniPath)
-	public Boolean __evalUniPath(ArrayList<Node> tree) {
-System.out.println(UniPath.call("toJson", tree));
+	@SuppressWarnings("unchecked")
+	static public Boolean __evalUniPath(ArrayList<Node> tree) {
+//  System.out.println(UniPath.call("toJson", tree));
 
-		if(tree.size() > 100)
+		if(tree.size() > UniPath.__steps_limit)
 			throw new RuntimeException("Too many steps! - "+tree.size());
 
 		Boolean current_tree_node_already_evaluted = false;
@@ -218,7 +236,8 @@ System.out.println(UniPath.call("toJson", tree));
 		for(lv = 1; lv < tree.size(); lv++) {
 			if(UniPath.debug) System.out.format("%n**** %s ****%n", tree.get(lv).unipath);
 		
-			String name = tree.get(lv).name.toString();
+			String name = tree.get(lv).name == null ? "?start_data?" : tree.get(lv).name.toString();
+			Boolean name_is_func = name.indexOf('(') > -1;
 			ArrayList<UniPath.Expr> filter = tree.get(lv).filter == null 
 				? new ArrayList<UniPath.Expr>() 
 				: tree.get(lv).filter;
@@ -239,74 +258,168 @@ System.out.println(UniPath.call("toJson", tree));
 				throw new RuntimeException("no data_type set on step #"+lv+"! "+tree.get(lv-1).toString());
 				
 			String prev_data_type = (String) tree.get(lv-1).metadata.get("0");
-System.out.format("prev_data_type = %s%n", prev_data_type);
+			if(UniPath.debug) System.out.format("prev_data_type = %s%n", prev_data_type);
 
+			// .[]/...%s...[] - повторная фильтрация данных с шаблоном ключя или без
+			if(name_is_func == false && (name.equals(".") || name.indexOf('%') > -1)) {
+				// TODO filter
+			
+				tree.get(lv).data = tree.get(lv-1).data;
+				tree.get(lv).metadata = tree.get(lv-1).metadata;
+			}
+			
 			// /Class/... если начинается с названия класса
-			if(lv == 1 && name.indexOf('(') == -1) {
+			else if(lv == 1 && name_is_func == false && tree.get(0).name.equals("?start_data?") && prev_data_type.equals("null")) {
 // 				java.lang.reflect.Method meth_findLoadedClass = ClassLoader.class.getDeclaredMethod("findLoadedClass", new Class[] { String.class });
 // 				meth_findLoadedClass.setAccessible(true);
 // 				Object found_class = meth_findLoadedClass.invoke(
 // 					Thread.currentThread().getContextClassLoader(), 
 // 					name);
+				Class found_class = null;
+				try { 
+					found_class = Class.forName(name); 
+				} catch(ClassNotFoundException ex1) { 
 				try {
-					Class found_class = Class.forName(name);
-					tree.get(lv).data = found_class;
-					tree.get(lv).metadata.put("0", "Class");
-					tree.get(lv).metadata.put("key()", name);
-				}
-				catch(ClassNotFoundException ex) {
-					if(UniPath.debug) ex.printStackTrace();
-					tree.get(lv).data = null;
+					found_class = Class.forName("java.util."+name);
+				} catch(ClassNotFoundException ex2) { 
+				try {
+					found_class = Class.forName("java.lang."+name);
+				} catch(ClassNotFoundException ex3) { 
+				try {
+					found_class = Class.forName("java.io."+name);
+				} catch(ClassNotFoundException ex4) { 
+				try {
+					found_class = Class.forName("java.net."+name);
+				} catch(ClassNotFoundException ex5) { 
+					throw new RuntimeException("Class not found: "+name);
+					
+					/* tree.get(lv).data = null;
 					tree.get(lv).metadata.put("0", "null");
-					tree.get(lv).metadata.put("key()", name);
-				}
+					tree.get(lv).metadata.put("key()", name); */
+				}}}}}
+				
+				tree.get(lv).data = found_class;
+				tree.get(lv).metadata.put("0", "class");
+				tree.get(lv).metadata.put("key()", name);
 			}
 			
 			// Class.<name>()
-			else if(name.indexOf('(') > 0 && prev_data_type.equals("Class")) {
+			else if(name_is_func && prev_data_type.equals("class")) {
+				
+				// распаковываем аргументы
 				HashMap<String, Object> args = new HashMap<String, Object>();
 				HashMap<String, String> args_types = new HashMap<String, String>();
 				UniPath.__parseFuncArgs(name.toCharArray(), args, args_types);
+				if(UniPath.debug) System.out.format("args=%s, args_types=%s%n", args, args_types);
 				
-				// TODO $args ...
-			
+				// подготавливаем набор типов и аргументы
+				int n = 0;
+				Class[] types = new Class[args.size()];
+				Object[] params = new Object[args.size()];
+				for(Map.Entry<String, String> arg_type : args_types.entrySet()) { 
+					Object arg = args.get(arg_type.getKey());
+					
+					// если тип аргумента unipath, то выполним его
+					if(arg_type.getValue().equals("unipath")) {
+						arg = new UniPath((String) arg, tree.get(lv-1).data, tree.get(lv-1).metadata).get();
+// 						args.put(arg_type.getKey(), arg);
+					}
+				
+					types[n] = arg.getClass();
+					params[n] = arg;
+					n++;
+				}
+				if(UniPath.debug) System.out.format("params=%s, types=%s%n", Arrays.asList(params), Arrays.asList(types));
+				
 				Class loaded_class = (Class) tree.get(lv-1).data;
 				String func_name = name.substring(0, name.indexOf('('));
-				
-				try {
-					// создать объект?
-					if(func_name.equals(loaded_class.getName()) || func_name.equals("new")) {
-						tree.get(lv).data = ((Class) tree.get(lv-1).data).getConstructor().newInstance();
-					} 
-					
-					// или вызвать статичный метод?
-					else {
-						tree.get(lv).data = loaded_class
-							.getDeclaredMethod(func_name, new Class[]{})
-							.invoke(null, new Object[]{});
-					}
-				} catch (NoClassDefFoundError ex) {
-					ex.printStackTrace();
-					tree.get(lv).data = ex;
+
+				// создать объект?
+				if(func_name.equals(loaded_class.getName()) || func_name.equals("new")) try {
+					tree.get(lv).data = ((Class) tree.get(lv-1).data).getConstructor(types).newInstance();
 				} catch (InstantiationException ex) {
 					ex.printStackTrace();
-					tree.get(lv).data = ex;
+// 					tree.get(lv).data = ex;
 				} catch (InvocationTargetException ex) {
 					ex.printStackTrace();
-					tree.get(lv).data = ex;
+// 					tree.get(lv).data = ex;
 				} catch (NoSuchMethodException ex) {
 					ex.printStackTrace();
-					tree.get(lv).data = ex;
 				} catch (IllegalAccessException ex) {
 					ex.printStackTrace();
-					tree.get(lv).data = ex;
+// 					tree.get(lv).data = ex;
 				}
 				
-				tree.get(lv).metadata.put("0", tree.get(lv).data.getClass().getName());
+				// или вызвать статичный метод?
+				else try {
+Method tmp = loaded_class.getMethod("format", new Class[]{String.class, Object[].class});
+// System.out.println(tmp.invoke(null, new Object[]{ "@%s@%d@%n", new Object[]{ "112", 223 }}));
+// System.out.println(tmp.invoke(null, new Object[]{ "@%s@%n", new Object[]{ (Object) String.class }}));
+
+					Method meth = loaded_class.getDeclaredMethod(func_name, types);
+					meth.setAccessible(true);
+					tree.get(lv).data = meth.invoke(null, params);
+				} catch (NoClassDefFoundError ex) {
+					ex.printStackTrace();
+// 					tree.get(lv).data = ex;
+				} catch (InvocationTargetException ex) {
+					ex.printStackTrace();
+// 					tree.get(lv).data = ex;
+				} catch (NoSuchMethodException ex) {
+
+					// если не нашли метод, то может он с varargs? (например String.format...)
+					for (Method meth2 : loaded_class.getDeclaredMethods()) {
+						if(meth2.getName().equals(func_name) == false) continue;
+
+						Class<?>[] meth_arg_types = meth2.getParameterTypes();
+						if(meth_arg_types.length > 0 && meth_arg_types[meth_arg_types.length-1].getName().charAt(0) == '[') try {
+							if(UniPath.debug) System.out.format("meth_arg_types=%s%n", Arrays.asList(meth_arg_types));
+							
+							// проверим совместимость параметров
+							int type_check_ok = 0;
+							for(Class<?> clazz : meth_arg_types) {
+								if(types[type_check_ok] == clazz || clazz.isAssignableFrom(types[type_check_ok]) || clazz == Object.class) { type_check_ok++; continue; }
+								if(clazz.getName().charAt(0) == '[') break;
+								else { type_check_ok = -1; break; }
+							}
+							if(type_check_ok == -1) continue;
+
+							// переупакуем параметры
+							Object[] params2 = Arrays.copyOf(params, meth_arg_types.length);
+							Object[] varargs = new Object[
+								params.length >= meth_arg_types.length ?
+								params.length - meth_arg_types.length + 1 : 0];
+							System.arraycopy(
+								params, meth_arg_types.length - 1, 
+								varargs, 0, 
+								params.length >= meth_arg_types.length ?
+								params.length - meth_arg_types.length + 1 : 0);
+							params2[params2.length-1] = (Object) varargs;
+							
+							if(UniPath.debug) System.out.format("params2=%s, varargs=%s%n", Arrays.asList(params2), Arrays.asList(varargs));
+							
+							// теперь вызываем
+							meth2.setAccessible(true);
+							tree.get(lv).data = meth2.invoke(null, params2);
+							break;
+						}
+						catch (IllegalAccessException ex2) {
+							ex2.printStackTrace();
+						}
+						catch (InvocationTargetException ex2) {
+							ex2.getCause().printStackTrace();
+						}
+					}
+				} catch (IllegalAccessException ex) {
+					ex.printStackTrace();
+// 					tree.get(lv).data = ex;
+				}
+				
+				tree.get(lv).metadata.put("0", tree.get(lv).data == null ? "null" : tree.get(lv).data.getClass().getName());
 			}
 			
 			// __extensions[<name>]()
-			else if(name.indexOf('(') > 0 && __extensions.containsKey(name.substring(0, name.indexOf('(')))) {
+			else if(name_is_func && __extensions.containsKey(name.substring(0, name.indexOf('(')))) {
 				try {
 					UniPath.class
 						.getDeclaredMethod(name.substring(0, name.indexOf('(')), new Class[]{ ArrayList.class, Integer.class })
@@ -370,14 +483,16 @@ System.out.format("prev_data_type = %s%n", prev_data_type);
 		if(UniPath.debug_parse) System.out.println("Parsing - " + new String(xpath));
 		
 		ArrayList<Node> tree = new ArrayList<Node>();
+		ArrayList<Expr> filter;
 		
-		// абсалютный путь - стартовые данные это $GLOBALS
-		// для относительного, если не передали стартовые данные, то тоже $GLOBALS
+		Integer name_suffix_len = 0;
+		Integer p = 0;
+		
+		// абсалютный путь
 		if(xpath[0] == '/' || start_data == null && start_metadata == null) {
 			tree.add(new Node("?start_data?", null, new HashMap<String, Object>(), ""));
 			tree.get(0).metadata.put("0", "null");
 		}
-		
 			
 		// относительный путь - стартовые данные берём, которые передали
 		else {
@@ -391,33 +506,19 @@ System.out.format("prev_data_type = %s%n", prev_data_type);
 				tree.get(0).metadata.put("0", start_data.getClass().getName());
 		}
 		
-		// если первым указан протокол, то распарсим его заранее
-		/* if(sscanf($xpath, '%[qwertyuiopasdfghjklzxcvbnmQWERTYUIOPASDFGHJKLZXCVBNM_0123456789]:%2[/]', $scheme, $trailing_component) == 2) {
-			$scheme = strtolower($scheme);
-			switch($scheme) {
-				case 'file':
-					$tree[] = array('name' => 'fs()', 'data' => 'file://', 'data_type' => 'string/local-filesystem', 'data_tracking' => array('key()' => 'file://'), 'unipath' => 'file://'); 
-					break;
-				case 'http':
-					$url = strpos($xpath, "#/") > 0 ? substr($xpath, 0, strpos($xpath, "#/")) : $xpath;
-					$tree[] = array('name' => $url, 'unipath' => $url, 'data' => $url, 'data_type' => 'string/url', 'data_tracking' => array('key()' => $url));
-					break;
-				default:
-					$tree[] = array('name' => "$scheme://", 'unipath' => "$scheme://"); 
-			}
-// 			$tree[] = array('name' => null);
-			$p = strlen($scheme) + 3;
-		}  */
+		// если первым указан протокол, то сконвертируем в url()
+		if(xpath.length > 7 && xpath[4] == ':' && xpath[5] == '/' && xpath[6] == '/') {
+			while(xpath.length > p+1 && xpath[p] != '#') p++;
+			tree.add(new Node(
+				"url(```````"+new String(xpath, 0, p)+"```````)", 
+				null, null, 
+				new String(xpath, 0, p += xpath.length > p+2 && xpath[p+1] == '/' ? 2 : 1)));
+		}
 		
 		// если относительный путь, то создадим сразу новый узел
-		if(xpath[0] != '/') {
+		if(xpath[p] != '/') {
 			tree.add(new Node());
 		} 
-
-		Integer name_suffix_len = 0;
-		Integer p = 0;
-		
-		ArrayList<Expr> filter;
 		
 		// __prt_cnt - защита от зацикливания
 		for(int prt_cnt = UniPath.__prt_cnt; p < xpath.length && prt_cnt > 0; prt_cnt--) {
@@ -572,7 +673,7 @@ if(UniPath.debug_parse) System.out.format("filtration start - %s%n", p);
 				Integer curr_braket_level = 0;
 				String op;
 				while(p < xpath.length && xpath[p] != ']') {
-if(UniPath.debug_parse) System.out.format("--- %d --- (op: %s, bl: %d)%n", expr, filter.get(expr).op, curr_braket_level);
+if(UniPath.debug_parse) System.out.format("--- %d --- (op: %s, cur_bl: %d)%n", expr, filter.get(expr).op, curr_braket_level);
 					while(" \n\t".indexOf(xpath[p]) > -1 && p+1 < xpath.length) p++;
 if(UniPath.debug_parse) System.out.println(new String(xpath, 0, p));
 					// до конца фильтрации были пробелы?
@@ -748,7 +849,7 @@ if(UniPath.debug_parse) System.out.format("AND/OR detected! - %s%n", op);
 if(UniPath.debug_parse) System.out.format("  go-up-start (%d, %s)%n", expr, filter.get(expr).op);
 						// поднимемся наверх в поисках того, у кого мы сможе отобрать правую часть
 						Integer old_expr = expr;
-						while(filter.get(old_expr).op_is_any("*","div","mod", "+","-", "=","<",">","<=",">=", "<>", "!=", "and", "or") && filter.get(old_expr).braket_level == curr_braket_level)
+						while((filter.get(old_expr).op_is_any("*","div","mod", "+","-", "=","<",">","<=",">=", "<>", "!=", "and", "or") && filter.get(old_expr).braket_level == curr_braket_level) || (filter.get(old_expr).braket_level > curr_braket_level && filter.get(old_expr).next != null))
 							if(filter.get(old_expr).next == null) break;
 							else old_expr = filter.get(old_expr).next;
 
@@ -997,7 +1098,7 @@ if(UniPath.debug_parse) System.out.println("filter_string_end - "+val);
 						while(xpath.length > p+1 && " \n\t".indexOf(xpath[p]) > -1) p++; 
 						
 						// возможно это список строк
-						ArrayList<String> val_array;
+						ArrayList<String> val_array = null;
 						if(xpath[p] == ',') {
 							val_type = "list-of-" + val_type;
 							val_array = new ArrayList<String>();
@@ -1007,16 +1108,17 @@ if(UniPath.debug_parse) System.out.println("filter_string_end - "+val);
 							while(" \n\t".indexOf(xpath[p]) > -1) p++; 
 							
 							// парсим список строк
-							while(xpath.length > p && "\"'`N\n\t ".indexOf(xpath[p]) > -1) {
+							while(xpath.length > p && "\"'`N\n\t, ".indexOf(xpath[p]) > -1) {
 							
 								// пропустим пробелы
-								while("\n\t, ".indexOf(xpath[p]) > -1) p++; 
+								while(xpath.length > p+1 && "\n\t, ".indexOf(xpath[p]) > -1) p++; 
 								
 								// MSSQL UnicodeString
 								if(xpath[p] == 'N') p++;
 								
-								start_p = p++;
-
+								// сохраним начало ковычки
+								start_p = p;
+								
 								// ```````...```````
 								if(xpath.length > p+6 && xpath[p] == '`' && xpath[p+1] == '`' && xpath[p+2] == '`' && xpath[p+3] == '`' && xpath[p+4] == '`' && xpath[p+5] == '`' && xpath[p+6] == '`') {
 									for(p += 6; xpath.length > p+6; p++) 
@@ -1056,23 +1158,26 @@ if(UniPath.debug_parse) System.out.println("filter_list_string_type = ```, end =
 								}
 								
 								// `...`, '...', "..."
+								else if(xpath[p] == '\'' || xpath[p] == '"' || xpath[p] == '`') {
+									while(xpath.length > p+1 && xpath[p+1] != xpath[start_p]) p++;
+									val_array.add(new String(xpath, start_p+1, p-start_p));
+									p += 2;
+if(UniPath.debug_parse) System.out.format("filter_list_string_type = %c, end_str = %c%n", xpath[start_p], xpath[p]);
+								} 
 								else {
-if(UniPath.debug_parse) System.out.format("filter_list_string_type = %s, end = %i", xpath[start_p], p);
-									while(xpath[p+1] != xpath[start_p]) p++;
-									val_array.add(new String(xpath, start_p+1, p-start_p-2));
-									p += 1;
+									throw new RuntimeException("Unknown string start - "+xpath[p]);
 								}
 								
-if(UniPath.debug_parse) System.out.println("filter_list_string = "+val_array.toString());
+if(UniPath.debug_parse) System.out.format("filter_list_string = %s%n", val_array.toString());
 							}
 						}
 						
 						if(expr_key.equals("left")) {
-							filter.get(expr).left = val;
+							filter.get(expr).left = val_array != null ? val_array : val;
 							filter.get(expr).left_type = val_type;
 						} 
 						else {
-							filter.get(expr).right = val;
+							filter.get(expr).right = val_array != null ? val_array : val;
 							filter.get(expr).right_type = val_type;
 						}
 						
@@ -1183,12 +1288,12 @@ if(UniPath.debug_parse) System.out.format("!!! unknown - %c (%04x)%n", xpath[p],
 				}
 				p++; // ]
 				
-				// поддержка 2ух фильтров?
-				/* if(isset($tree[count($tree)-1]['filter'.$suffix]))
-					$tree[count($tree)-1]['filter2'.$suffix] = $filter;
-				else
-					$tree[count($tree)-1]['filter'.$suffix] = $filter; */
-					
+				// уберём пустой узел в конце если фильтр пуст
+				if(filter.size() == 2 && filter.get(1).left == null && filter.get(0).next == 1) {
+					filter.remove(1);
+					filter.get(0).next = null;
+				}
+				
 				continue;
 			} // фильтрация
 			
@@ -1331,10 +1436,15 @@ if(UniPath.debug_parse) System.out.println(val);
 						else {
 							result.put(arg_key, new String(string, arg_start, p+len-arg_start).trim());
 							result_types.put(arg_key, "number");
-							
+
 							// может это не число, а unipath?
 							for(int i = arg_start; i < p+len; i++) {
-								if("0123456789. \t\n\r".indexOf(string[i]) > -1) continue;
+								if ( 
+									Character.isSpaceChar(string[i]) || Character.isDigit(string[i]) 
+									|| ((string[i] == '.' || string[i] == '-') 
+									&& string.length > i+1 && Character.isDigit(string[i+1]))
+								)
+									continue;
 								else {
 									result_types.put(arg_key, "unipath");
 									break;
@@ -1493,10 +1603,15 @@ if(UniPath.debug_parse) System.out.println(val);
 					else {
 						result.put(arg_key, new String(string, arg_start, p+len-arg_start).trim());
 						result_types.put(arg_key, "number");
-						
+
 						// может это не число, а unipath?
 						for(int i = arg_start; i < p+len; i++) {
-							if("0123456789. \t\n\r".indexOf(string[i]) > -1) continue;
+							if ( 
+								Character.isSpaceChar(string[i]) || Character.isDigit(string[i]) 
+								|| ((string[i] == '.' || string[i] == '-') 
+								&& string.length > i+1 && Character.isDigit(string[i+1]))
+							)
+								continue;
 							else {
 								result_types.put(arg_key, "unipath");
 								break;
@@ -1550,13 +1665,6 @@ if(UniPath.debug_parse) System.out.println(val);
 		return func_name;
 	}
 
-	/* static public void fs(ArrayList<Node> tree, Integer lv) {
-		tree.get(lv).data = "file://";
-		tree.get(lv).metadata.clear();
-		tree.get(lv).metadata.put("0", "string/local-filesystem");
-		tree.get(lv).metadata.put("key()", "file://");
-	} */
-	
 	static public void toJson(ArrayList<Node> tree, Integer lv) {
 		StringBuffer out = new StringBuffer();
 		toJson(tree.get(lv-1).data, out, 0, 10, true);
@@ -1764,5 +1872,12 @@ if(UniPath.debug_parse) System.out.println(val);
 				}
 			}
 		}//for
+	}
+
+	static public void fs(ArrayList<Node> tree, Integer lv) {
+		tree.get(lv).data = "file://";
+		tree.get(lv).metadata.clear();
+		tree.get(lv).metadata.put("0", "string/local-filesystem");
+		tree.get(lv).metadata.put("key()", "file://");
 	}
 }
