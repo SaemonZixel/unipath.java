@@ -1,8 +1,9 @@
 import java.util.*;
 import java.io.*;
+import java.lang.invoke.MethodHandles;
 
 public class UniPath_tests {
-	static public void main(String[] args) {
+	static public void main(String[] args) throws Throwable {
 		UniPath.__prt_cnt = 200;
 	
 		test_parseUniPath();
@@ -2255,19 +2256,28 @@ public class UniPath_tests {
 		assert obj instanceof String : obj;
 		assert obj.equals("# class java.lang.String #") : obj;
 		
-		unipath = "/java.util.HashMap/new()/put(1, '123')";
+		unipath = "format('<h1>%s</h1>', 'ok!')";
 		System.out.format("%n\033[1m~~~ %s ~~~\033[0m%n", unipath);
-		UniPath.debug = true;
+// 		UniPath.debug = true;
+		obj = new UniPath("/String").get(unipath);
+		assert obj instanceof String : obj;
+		assert obj.equals("<h1>ok!</h1>") : obj;
+
+		
+		unipath = "/java.util.HashMap/new()/put(1, '123')/..";
+		System.out.format("%n\033[1m~~~ %s ~~~\033[0m%n", unipath);
+// 		UniPath.debug = true;
 		obj = new UniPath(unipath).get();
 // System.out.println(UniPath.call("toJson", obj));
 		assert obj instanceof HashMap;
 		assert ((HashMap) obj).get(1) instanceof String : ((HashMap) obj).get(1);
 		
-		unipath = "fs()";
-		System.out.format("%n\033[1m~~~ %s ~~~\033[0m%n", unipath);
-		obj = new UniPath(unipath).get();
+// 		unipath = "fs()";
+// 		System.out.format("%n\033[1m~~~ %s ~~~\033[0m%n", unipath);
+// 		obj = new UniPath(unipath).get();
 // System.out.println(UniPath.call("toJson", obj));
-		assert obj instanceof String && obj.equals("file://");
+// 		assert obj instanceof String && obj.equals("file://");
+
 	}
 	
 	static public void test_extensions() {

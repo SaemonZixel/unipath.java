@@ -49,7 +49,7 @@ class UniPath {
 	static public HashMap<String, Object> __extensions = new HashMap<String, Object>();
 	static {
 		__extensions.put("toJson", UniPath.class);
-		__extensions.put("fs", UniPath.class);
+// 		__extensions.put("fs", UniPath.class);
 	}
 	
 	public ArrayList<Node> tree; // текущее разобранное дерево unipath_query
@@ -165,6 +165,25 @@ class UniPath {
 		__evalUniPath(tree);
 	} */
 	
+	static public void __dbg_log(String format, Object ...args) {
+		if(UniPath.debug == false) return;
+
+		switch(args.length) {
+			case 1:
+				System.out.format(format, args[0]); break;
+			case 2: 
+				System.out.format(format, args[0], args[1]); break;
+			case 3: 
+				System.out.format(format, args[0], args[1], args[2]); break;
+			case 4:
+				System.out.format(format, args[0], args[1], args[2], args[3]); break;
+			case 5:
+				System.out.format(format, args[0], args[1], args[2], args[3], args[4]); break;
+			default:
+				System.out.println(format); break;
+		}
+	}
+	
 	static public Object eval(String unipath_query) {
 		ArrayList<Node> tree = UniPath.__parseUniPath(unipath_query.toCharArray(), null, null);
 		UniPath.__evalUniPath(tree);
@@ -172,18 +191,18 @@ class UniPath {
 	}
 	
 	public Object get() {
-		if(UniPath.debug) System.out.format("*** RETURN ***%n%s%n**************%n", tree.get(tree.size()-1).data);
+		__dbg_log("*** RETURN ***%n%s%n**************%n", tree.get(tree.size()-1).data);
 		return tree.get(tree.size()-1).data;
 	}
 	
 	public Object get(String unipath_query) {
-		tree = __parseUniPath(
+		ArrayList<Node> tree2 = __parseUniPath(
 			unipath_query.toCharArray(), 
 			tree.get(tree.size()-1).data, 
 			tree.get(tree.size()-1).metadata
 		);
-		__evalUniPath(tree);
-		return tree.get(tree.size()-1).data;
+		__evalUniPath(tree2);
+		return tree2.get(tree2.size()-1).data;
 	}
 	
 // 	public Object get(String unipath_query, Object args...) {
@@ -229,15 +248,15 @@ class UniPath {
 		if(tree.size() > UniPath.__steps_limit)
 			throw new RuntimeException("Too many steps! - "+tree.size());
 
-		Boolean current_tree_node_already_evaluted = false;
+		boolean current_tree_node_already_evaluted = false;
 		
 		// Главный цикл
-		Integer lv;
+		int lv;
 		for(lv = 1; lv < tree.size(); lv++) {
-			if(UniPath.debug) System.out.format("%n**** %s ****%n", tree.get(lv).unipath);
+			__dbg_log("%n**** %s ****%n", tree.get(lv).unipath);
 		
 			String name = tree.get(lv).name == null ? "?start_data?" : tree.get(lv).name.toString();
-			Boolean name_is_func = name.indexOf('(') > -1;
+			boolean name_is_func = name.indexOf('(') > -1;
 			ArrayList<UniPath.Expr> filter = tree.get(lv).filter == null 
 				? new ArrayList<UniPath.Expr>() 
 				: tree.get(lv).filter;
@@ -258,7 +277,8 @@ class UniPath {
 				throw new RuntimeException("no data_type set on step #"+lv+"! "+tree.get(lv-1).toString());
 				
 			String prev_data_type = (String) tree.get(lv-1).metadata.get("0");
-			if(UniPath.debug) System.out.format("prev_data_type = %s%n", prev_data_type);
+			
+			__dbg_log("prev_data_type = %s (is_obj=%s)%n", prev_data_type, tree.get(lv-1).data instanceof Object);
 
 			// .[]/...%s...[] - повторная фильтрация данных с шаблоном ключя или без
 			if(name_is_func == false && (name.equals(".") || name.indexOf('%') > -1)) {
@@ -304,13 +324,14 @@ class UniPath {
 			}
 			
 			// Class.<name>()
-			else if(name_is_func && prev_data_type.equals("class")) {
+			else if(name_is_func && lv > 0 && (tree.get(lv-1).data instanceof Object)) {
 				
 				// распаковываем аргументы
 				HashMap<String, Object> args = new HashMap<String, Object>();
 				HashMap<String, String> args_types = new HashMap<String, String>();
-				UniPath.__parseFuncArgs(name.toCharArray(), args, args_types);
-				if(UniPath.debug) System.out.format("args=%s, args_types=%s%n", args, args_types);
+				String func_name = UniPath.__parseFuncArgs(name.toCharArray(), args, args_types);
+				
+				__dbg_log("args=%s, args_types=%s%n", args, args_types);
 				
 				// подготавливаем набор типов и аргументы
 				int n = 0;
@@ -324,67 +345,80 @@ class UniPath {
 						arg = new UniPath((String) arg, tree.get(lv-1).data, tree.get(lv-1).metadata).get();
 // 						args.put(arg_type.getKey(), arg);
 					}
+					// TODO number (parseInt/parseFloat...)
+					else if(arg_type.getValue().equals("number"))
+						arg = Integer.valueOf((String) arg);
 				
 					types[n] = arg.getClass();
 					params[n] = arg;
 					n++;
 				}
-				if(UniPath.debug) System.out.format("params=%s, types=%s%n", Arrays.asList(params), Arrays.asList(types));
 				
-				Class loaded_class = (Class) tree.get(lv-1).data;
-				String func_name = name.substring(0, name.indexOf('('));
+				__dbg_log("params=%s, types=%s%n", Arrays.asList(params), Arrays.asList(types));
+				
+				// где будет искать метод
+				Class loaded_class = (Class) (
+					tree.get(lv-1).data instanceof Class 
+					? tree.get(lv-1).data
+					: tree.get(lv-1).data.getClass()
+				);
+				
+				Boolean method_found = false;
 
 				// создать объект?
-				if(func_name.equals(loaded_class.getName()) || func_name.equals("new")) try {
-					tree.get(lv).data = ((Class) tree.get(lv-1).data).getConstructor(types).newInstance();
+				if(tree.get(lv-1).data instanceof Class 
+				&& (func_name.equals(loaded_class.getName()) || func_name.equals("new"))) try {
+					Constructor cntr = loaded_class.getConstructor(types);
+					method_found = true;
+					tree.get(lv).data = cntr.newInstance();
 				} catch (InstantiationException ex) {
 					ex.printStackTrace();
-// 					tree.get(lv).data = ex;
 				} catch (InvocationTargetException ex) {
 					ex.printStackTrace();
-// 					tree.get(lv).data = ex;
 				} catch (NoSuchMethodException ex) {
 					ex.printStackTrace();
 				} catch (IllegalAccessException ex) {
 					ex.printStackTrace();
-// 					tree.get(lv).data = ex;
 				}
 				
 				// или вызвать статичный метод?
 				else try {
-Method tmp = loaded_class.getMethod("format", new Class[]{String.class, Object[].class});
-// System.out.println(tmp.invoke(null, new Object[]{ "@%s@%d@%n", new Object[]{ "112", 223 }}));
-// System.out.println(tmp.invoke(null, new Object[]{ "@%s@%n", new Object[]{ (Object) String.class }}));
-
-					Method meth = loaded_class.getDeclaredMethod(func_name, types);
+					Method meth = loaded_class.getMethod(func_name, types);
+					method_found = true;
 					meth.setAccessible(true);
-					tree.get(lv).data = meth.invoke(null, params);
+					tree.get(lv).data = meth.invoke(tree.get(lv-1).data, params);
 				} catch (NoClassDefFoundError ex) {
 					ex.printStackTrace();
-// 					tree.get(lv).data = ex;
 				} catch (InvocationTargetException ex) {
-					ex.printStackTrace();
-// 					tree.get(lv).data = ex;
+					ex.getCause().printStackTrace();
 				} catch (NoSuchMethodException ex) {
 
-					// если не нашли метод, то может он с varargs? (например String.format...)
-					for (Method meth2 : loaded_class.getDeclaredMethods()) {
+					// если не нашли метод, то может он с varargs? (например String.format...) или типы не точно совпадают
+					nextMethod: 
+					for (Method meth2 : loaded_class.getDeclaredMethods()) try {
 						if(meth2.getName().equals(func_name) == false) continue;
-
+						meth2.setAccessible(true);
+						
 						Class<?>[] meth_arg_types = meth2.getParameterTypes();
-						if(meth_arg_types.length > 0 && meth_arg_types[meth_arg_types.length-1].getName().charAt(0) == '[') try {
-							if(UniPath.debug) System.out.format("meth_arg_types=%s%n", Arrays.asList(meth_arg_types));
-							
-							// проверим совместимость параметров
-							int type_check_ok = 0;
-							for(Class<?> clazz : meth_arg_types) {
-								if(types[type_check_ok] == clazz || clazz.isAssignableFrom(types[type_check_ok]) || clazz == Object.class) { type_check_ok++; continue; }
-								if(clazz.getName().charAt(0) == '[') break;
-								else { type_check_ok = -1; break; }
+						
+						__dbg_log("try %s(%s)...%n", meth2.getName(), Arrays.asList(meth_arg_types));
+						
+						// TODO meth_arg_types == null
+						boolean need_repack = false;
+						for (int i = 0; i < meth_arg_types.length; ++i) {
+							if (i == meth_arg_types.length-1 && meth_arg_types[i].getName().charAt(0) == '[') {
+								need_repack = true;
+								break;
 							}
-							if(type_check_ok == -1) continue;
-
-							// переупакуем параметры
+							if ( ! meth_arg_types[i].isAssignableFrom(types[i]))
+								continue nextMethod;
+						}
+						method_found = true;
+						
+						// переупакуем параметры (если Object ...args)
+						if (need_repack) {
+							__dbg_log("repack %d -> %d+N%n", params.length, meth_arg_types.length-1);
+							
 							Object[] params2 = Arrays.copyOf(params, meth_arg_types.length);
 							Object[] varargs = new Object[
 								params.length >= meth_arg_types.length ?
@@ -396,26 +430,53 @@ Method tmp = loaded_class.getMethod("format", new Class[]{String.class, Object[]
 								params.length - meth_arg_types.length + 1 : 0);
 							params2[params2.length-1] = (Object) varargs;
 							
-							if(UniPath.debug) System.out.format("params2=%s, varargs=%s%n", Arrays.asList(params2), Arrays.asList(varargs));
+							__dbg_log("params2=%s, varargs=%s%n", Arrays.asList(params2), Arrays.asList(varargs));
 							
-							// теперь вызываем
-							meth2.setAccessible(true);
-							tree.get(lv).data = meth2.invoke(null, params2);
-							break;
+							params = params2;
 						}
-						catch (IllegalAccessException ex2) {
-							ex2.printStackTrace();
-						}
-						catch (InvocationTargetException ex2) {
-							ex2.getCause().printStackTrace();
-						}
+
+						// теперь вызываем
+						__dbg_log("invoke %s(%s)%n", meth2, params);
+						tree.get(lv).data = meth2.invoke(tree.get(lv-1).data, params);
+						
+						break;
+					}
+					catch (IllegalAccessException ex2) {
+						ex2.printStackTrace();
+					}
+					catch (InvocationTargetException ex2) {
+						ex2.getCause().printStackTrace();
 					}
 				} catch (IllegalAccessException ex) {
 					ex.printStackTrace();
-// 					tree.get(lv).data = ex;
 				}
 				
-				tree.get(lv).metadata.put("0", tree.get(lv).data == null ? "null" : tree.get(lv).data.getClass().getName());
+				__dbg_log("found: %s, data:%s, result: %s %n", method_found, tree.get(lv-1).data, tree.get(lv).data);
+				
+				// успешно, нашли и вызвали метод
+				if (method_found) {
+					tree.get(lv).metadata.put("0", tree.get(lv).data == null ? "null" : tree.get(lv).data.getClass().getName());
+					continue;
+				}
+				
+				// похоже это не метод пред.объекта -> тогда поищем среди внутренних функций
+				if (method_found == false && __extensions.containsKey(func_name)) try {
+					UniPath.class
+						.getDeclaredMethod(func_name, new Class[]{ ArrayList.class, Integer.class })
+						.invoke(null, new Object[]{ tree, lv });
+				} catch (InvocationTargetException ex) {
+					ex.getCause().printStackTrace();
+// 						tree.get(lv).data = ex;
+// 						tree.get(lv).metadata.put("0", "Exception");
+				} catch (NoSuchMethodException ex) {
+					ex.printStackTrace();
+// 						tree.get(lv).data = ex;
+// 						tree.get(lv).metadata.put("0", "Exception");
+				} catch (IllegalAccessException ex) {
+					ex.printStackTrace();
+// 						tree.get(lv).data = ex;
+// 						tree.get(lv).metadata.put("0", "Exception");
+				}
 			}
 			
 			// __extensions[<name>]()
@@ -437,6 +498,17 @@ Method tmp = loaded_class.getMethod("format", new Class[]{String.class, Object[]
 					tree.get(lv).data = ex;
 					tree.get(lv).metadata.put("0", "Exception");
 				}
+			}
+			
+			// /..
+			else if(name.equals("..")) {
+				tree.get(lv).data = lv > 1 ? tree.get(lv-2).data : null;
+				tree.get(lv).metadata = lv > 1 ? tree.get(lv-2).metadata
+				: new HashMap<String, Object>();
+			
+				// специально пометим, что это копия предыдущего шага
+				if( ! tree.get(lv).metadata.	containsKey("this_step_is_copy_of_step"))
+					tree.get(lv).metadata.put("this_step_is_copy_of_step", lv-2);
 			}
 			
 			// если не понятно что делать, тогда просто копируем данные
@@ -1874,10 +1946,10 @@ if(UniPath.debug_parse) System.out.println(val);
 		}//for
 	}
 
-	static public void fs(ArrayList<Node> tree, Integer lv) {
+/*	static public void fs(ArrayList<Node> tree, Integer lv) {
 		tree.get(lv).data = "file://";
 		tree.get(lv).metadata.clear();
 		tree.get(lv).metadata.put("0", "string/local-filesystem");
 		tree.get(lv).metadata.put("key()", "file://");
-	}
+	} */
 }
